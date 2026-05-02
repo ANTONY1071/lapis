@@ -8,7 +8,7 @@ export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<Role>('customer');
+  const [role, setRole] = useState<Role>('shopkeeper');
   const [shopName, setShopName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,7 +32,6 @@ export default function Register() {
     setError('');
     setLoading(true);
 
-    // 1. Create auth user
     const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
     if (authError || !authData.user) {
       setError(authError?.message || 'Signup failed.');
@@ -42,7 +41,6 @@ export default function Register() {
 
     const userId = authData.user.id;
 
-    // 2. Insert into users table
     const { error: userError } = await supabase.from('users').insert({
       id: userId,
       name,
@@ -56,24 +54,20 @@ export default function Register() {
       return;
     }
 
-    // 3. If shopkeeper, create shopkeeper record
-    if (role === 'shopkeeper') {
-      const shopId = await generateShopId();
-      const { error: shopError } = await supabase.from('shopkeepers').insert({
-        user_id: userId,
-        shop_id: shopId,
-        shop_name: shopName || name + "'s Shop",
-        payment_status: false,
-      });
+    const shopId = await generateShopId();
+    const { error: shopError } = await supabase.from('shopkeepers').insert({
+      user_id: userId,
+      shop_id: shopId,
+      shop_name: shopName || name + "'s Shop",
+      payment_status: false,
+    });
 
-      if (shopError) {
-        setError(shopError.message);
-        setLoading(false);
-        return;
-      }
+    if (shopError) {
+      setError(shopError.message);
+      setLoading(false);
+      return;
     }
 
-    // 4. Redirect to login
     navigate('/');
     setLoading(false);
   };
@@ -130,40 +124,16 @@ export default function Register() {
             />
           </div>
 
-          {/* Role Selector */}
           <div>
-            <label className="text-xs text-white/50 uppercase tracking-wider mb-1.5 block">Account Type</label>
-            <div className="grid grid-cols-2 gap-2">
-              {(['customer', 'shopkeeper'] as Role[]).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setRole(r)}
-                  className={`py-2.5 rounded-xl text-sm font-semibold capitalize transition-all ${
-                    role === r
-                      ? 'bg-white text-navy-900'
-                      : 'bg-white/10 text-white hover:bg-white/20'
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
+            <label className="text-xs text-white/50 uppercase tracking-wider mb-1.5 block">Shop Name</label>
+            <input
+              type="text"
+              placeholder="Your shop name"
+              className="input-field"
+              value={shopName}
+              onChange={(e) => setShopName(e.target.value)}
+            />
           </div>
-
-          {/* Shopkeeper-only field */}
-          {role === 'shopkeeper' && (
-            <div>
-              <label className="text-xs text-white/50 uppercase tracking-wider mb-1.5 block">Shop Name</label>
-              <input
-                type="text"
-                placeholder="Your shop name"
-                className="input-field"
-                value={shopName}
-                onChange={(e) => setShopName(e.target.value)}
-              />
-            </div>
-          )}
 
           <button type="submit" disabled={loading} className="btn-primary w-full mt-2">
             {loading ? 'Creating account…' : 'Create Account'}
