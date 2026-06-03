@@ -136,7 +136,7 @@ Push to GitHub and import the repository on [vercel.com](https://vercel.com). Ad
 
 ## Author
 
-**Antony** — 1st Year AI & Data Science Student
+**Nitheen Antony** — 1st Year AI & Data Science Student
 Jerusalem College of Engineering, Chennai
 
 ---
